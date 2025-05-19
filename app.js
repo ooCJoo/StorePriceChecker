@@ -1,7 +1,7 @@
 // Improved app.js with better error handling and debugging
 
 // Google Sheets API Configuration
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5dtqJE1maE4uY_waIWKbgiiYcPUudDO4iUJnoRSnZqRy0Bw7IuJ9gF2E3sgpwoGkCNA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkKhU-Pp5L-nqiQej2xU611DDkvSP1fR1niTxe49bZarIw457jdRJ9spoaRjyBt2Pwmg/exec";
 
 // Debug mode - set to true to see detailed logs
 const DEBUG = true;
