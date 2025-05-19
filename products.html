@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Inventory System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="avatar">CJ</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li class="active"><a href="products.html"><i class="fas fa-box"></i> Products</a></li>
+                    <li><a href="add.html"><i class="fas fa-plus-circle"></i> Add</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main">
+            <header>
+                <h1>PRODUCTS</h1>
+            </header>
+            <div class="search-bar">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search products...">
+                </div>
+                <button class="camera-btn"><i class="fas fa-camera"></i></button>
+                <div class="filter-dropdown">
+                    <button class="filter-btn">
+                        <i class="fas fa-filter"></i> Show Filter
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-content" id="filterOptions">
+                        <!-- Filter options will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="products-list" id="productsList">
+                <!-- Products will be loaded here dynamically -->
+                <div class="loading">Loading products...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Load products on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            
+            // Set up search functionality
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                filterProducts(searchTerm);
+            });
+        });
+    </script>
+</body>
+</html>

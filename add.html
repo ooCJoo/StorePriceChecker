@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Inventory System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="avatar">CJ</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="products.html"><i class="fas fa-box"></i> Products</a></li>
+                    <li class="active"><a href="add.html"><i class="fas fa-plus-circle"></i> Add</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main">
+            <header>
+                <h1>ADD PRODUCTS</h1>
+            </header>
+            <div class="add-form-container">
+                <form id="addProductForm" class="add-form">
+                    <div class="form-group">
+                        <label for="name">NAME</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price">PRICE</label>
+                        <input type="number" id="price" name="price" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity">QUANTITY</label>
+                        <input type="text" id="quantity" name="quantity" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="code">CODE</label>
+                        <input type="text" id="code" name="code" required>
+                        <button type="button" class="camera-btn"><i class="fas fa-camera"></i></button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">CATEGORY</label>
+                        <select id="category" name="category" required>
+                            <option value="">CHOOSE</option>
+                            <option value="Drinks">Drinks</option>
+                            <option value="Food">Food</option>
+                            <option value="Snacks">Snacks</option>
+                            <option value="Household">Household</option>
+                            <option value="Personal Care">Personal Care</option>
+                            <option value="Canned Foods">Canned Foods</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image">IMAGE</label>
+                        <div class="image-upload">
+                            <div class="upload-placeholder" id="imagePreview">
+                                <i class="fas fa-camera"></i>
+                                <p>UPLOAD IMAGE</p>
+                            </div>
+                            <input type="file" id="image" name="image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="save-btn">SAVE</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Set up image upload preview
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        imagePreview.addEventListener('click', () => {
+            imageInput.click();
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        document.getElementById('addProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            addProduct();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="avatar">CJ</div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active"><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="products.html"><i class="fas fa-box"></i> Products</a></li>
+                    <li><a href="add.html"><i class="fas fa-plus-circle"></i> Add</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main">
+            <header>
+                <h1>INVENTORY SYSTEM</h1>
+                <p>For monitoring the prices of products available in your store</p>
+            </header>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h2>TOTAL PRODUCTS</h2>
+                    <div class="stat-number" id="totalProducts">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Load the total number of products on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchTotalProducts();
+        });
+    </script>
+</body>
+</html>
