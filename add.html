@@ -63,13 +63,29 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="image">IMAGE</label>
+                        <label for="popularName">POPULAR NAME (Optional)</label>
+                        <input type="text" id="popularName" name="popularName">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="driveImageUrl">GOOGLE DRIVE IMAGE URL</label>
+                        <div class="drive-url-container">
+                            <input type="text" id="driveImageUrl" name="driveImageUrl" 
+                                   placeholder="Paste Google Drive sharing link here">
+                            <button type="button" class="preview-btn" onclick="handleDriveImageInput()">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                        <small class="help-text">Upload your image to Google Drive, right-click and select "Get link", then paste it here</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>IMAGE PREVIEW</label>
                         <div class="image-upload">
                             <div class="upload-placeholder" id="imagePreview">
                                 <i class="fas fa-camera"></i>
-                                <p>UPLOAD IMAGE</p>
+                                <p>IMAGE PREVIEW</p>
                             </div>
-                            <input type="file" id="image" name="image" accept="image/*" style="display: none;">
                         </div>
                     </div>
                     
@@ -83,24 +99,7 @@
     
     <script src="app.js"></script>
     <script>
-        // Set up image upload preview
-        const imageInput = document.getElementById('image');
-        const imagePreview = document.getElementById('imagePreview');
-        
-        imagePreview.addEventListener('click', () => {
-            imageInput.click();
-        });
-        
-        imageInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-        
+        // Set up form submission
         document.getElementById('addProductForm').addEventListener('submit', (e) => {
             e.preventDefault();
             addProduct();
