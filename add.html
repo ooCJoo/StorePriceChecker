@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,53 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <style>
+        /* Adding some additional styles for error messages and loading state */
+        .form-group.error input,
+        .form-group.error select {
+            border-color: #ff3333;
+        }
+        
+        .error-message {
+            color: #ff3333;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .form-group.error .error-message {
+            display: block;
+        }
+        
+        .save-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .save-btn .fa-spinner {
+            margin-right: 5px;
+        }
+        
+        .api-error {
+            background-color: #ffeeee;
+            border: 1px solid #ff3333;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .api-success {
+            background-color: #eeffee;
+            border: 1px solid #33cc33;
+            color: #008800;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,25 +75,33 @@
                 <h1>ADD PRODUCTS</h1>
             </header>
             <div class="add-form-container">
+                <!-- Add notification areas for feedback -->
+                <div class="api-error" id="apiError"></div>
+                <div class="api-success" id="apiSuccess"></div>
+                
                 <form id="addProductForm" class="add-form">
                     <div class="form-group">
                         <label for="name">NAME</label>
                         <input type="text" id="name" name="name" required>
+                        <div class="error-message">Please enter a product name</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="price">PRICE</label>
                         <input type="number" id="price" name="price" required>
+                        <div class="error-message">Please enter a valid price</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="quantity">QUANTITY</label>
                         <input type="text" id="quantity" name="quantity" required>
+                        <div class="error-message">Please enter a quantity</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="code">CODE</label>
                         <input type="text" id="code" name="code" required>
+                        <div class="error-message">Please enter a product code</div>
                         <button type="button" class="camera-btn"><i class="fas fa-camera"></i></button>
                     </div>
                     
@@ -60,6 +116,7 @@
                             <option value="Personal Care">Personal Care</option>
                             <option value="Canned Foods">Canned Foods</option>
                         </select>
+                        <div class="error-message">Please select a category</div>
                     </div>
                     
                     <div class="form-group">
@@ -76,7 +133,13 @@
                                 <i class="fas fa-eye"></i> Preview
                             </button>
                         </div>
-                        <small class="help-text">Upload your image to Google Drive, right-click and select "Get link", then paste it here</small>
+                        <small class="help-text">
+                            1. Upload your image to Google Drive<br>
+                            2. Right-click and select "Get link"<br>
+                            3. Make sure it's set to "Anyone with the link can view"<br>
+                            4. Copy link and paste it here<br>
+                            5. Click Preview to see your image
+                        </small>
                     </div>
                     
                     <div class="form-group">
@@ -90,7 +153,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <button type="submit" class="save-btn">SAVE</button>
+                        <button type="submit" class="save-btn">SAVE PRODUCT</button>
                     </div>
                 </form>
             </div>
@@ -99,11 +162,140 @@
     
     <script src="app.js"></script>
     <script>
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            const form = document.getElementById('addProductForm');
+            
+            // Reset previous error states
+            const errorGroups = form.querySelectorAll('.form-group.error');
+            errorGroups.forEach(group => group.classList.remove('error'));
+            
+            // Hide notification messages
+            document.getElementById('apiError').style.display = 'none';
+            document.getElementById('apiSuccess').style.display = 'none';
+            
+            // Check required fields
+            const requiredFields = ['name', 'price', 'quantity', 'code', 'category'];
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    input.parentElement.classList.add('error');
+                    isValid = false;
+                }
+            });
+            
+            // Additional validation for price (must be a number)
+            const priceInput = document.getElementById('price');
+            if (priceInput.value && isNaN(parseFloat(priceInput.value))) {
+                priceInput.parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
         // Set up form submission
         document.getElementById('addProductForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            addProduct();
+            
+            if (validateForm()) {
+                addProduct();
+            }
         });
+        
+        // Display success message
+        function showSuccess(message) {
+            const successElement = document.getElementById('apiSuccess');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Display error message
+        function showError(message) {
+            const errorElement = document.getElementById('apiError');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        // Override the alert in addProduct function
+        const originalAddProduct = addProduct;
+        addProduct = async function() {
+            const form = document.getElementById('addProductForm');
+            if (!form) return;
+            
+            // Show loading state
+            const saveBtn = form.querySelector('.save-btn');
+            const originalBtnText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                // Collect form data
+                const formData = new FormData(form);
+                
+                // Get the processed image URL from the hidden field or data attribute
+                let imageUrl = '';
+                const driveUrlInput = document.getElementById('driveImageUrl');
+                
+                if (driveUrlInput && driveUrlInput.value) {
+                    imageUrl = driveUrlInput.getAttribute('data-processed-url') || 
+                              convertDriveUrlToDirectImageUrl(driveUrlInput.value);
+                }
+                
+                // Build product object
+                const product = {
+                    name: formData.get('name'),
+                    price: formData.get('price'),
+                    quantity: formData.get('quantity'),
+                    code: formData.get('code'),
+                    category: formData.get('category'),
+                    popularName: formData.get('popularName') || "",
+                    image: imageUrl || 'placeholder.jpg'
+                };
+                
+                // Send data to Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
+                
+                // Parse the response
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    showSuccess(`Product "${product.name}" added successfully!`);
+                    form.reset();
+                    
+                    // Reset image preview
+                    const imagePreview = document.getElementById('imagePreview');
+                    if (imagePreview) {
+                        imagePreview.innerHTML = `
+                          <i class="fas fa-camera"></i>
+                          <p>IMAGE PREVIEW</p>
+                        `;
+                    }
+                } else {
+                    showError("Error adding product: " + (result.message || "Unknown error"));
+                }
+            } catch (error) {
+                console.error("Error adding product:", error);
+                showError("Error connecting to database. Please check your connection and try again.");
+            } finally {
+                // Restore button state
+                saveBtn.innerHTML = originalBtnText;
+                saveBtn.disabled = false;
+            }
+        };
     </script>
 </body>
 </html>
