@@ -1,4 +1,4 @@
-// Debug version of app.js with networking fixes
+// Debug version of app.js with networking fixes and image handling improvements
 // Last updated: May 19, 2025
 
 // Google Sheets API Configuration
@@ -6,6 +6,9 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkKhU-Pp5L-nqiQej2x
 
 // Debug mode - set to true to see detailed logs
 const DEBUG = true;
+
+// Base64 encoded placeholder image to avoid 404 errors
+const PLACEHOLDER_IMAGE_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNODAgOTBDODAgOTkuOTQxMSA4OC4wNTg5IDEwOCA5OCAxMDhDMTA3Ljk0MSAxMDggMTE2IDk5Ljk0MTEgMTE2IDkwQzExNiA4MC4wNTg5IDEwNy45NDEgNzIgOTggNzJDODguMDU4OSA3MiA4MCA4MC4wNTg5IDgwIDkwWiIgZmlsbD0iI2JkYmRiZCIvPjxwYXRoIGQ9Ik0xNTIgMTYwSDUwQzUwIDE0MCAxMTUgMTU1IDExMCAxMjVDMTM1IDE1MCAxNjAgMTM1IDE1MiAxNjBaIiBmaWxsPSIjYmRiZGJkIi8+PHRleHQgeD0iMTAwIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMnB4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjU2NTY1Ij5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=";
 
 // Helper function for logging
 function debug(...args) {
@@ -49,6 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
   testApiConnection().then(isConnected => {
     debug(`API connection test result: ${isConnected ? 'SUCCESS' : 'FAILED'}`);
   });
+  
+  // Set default image error handler for all images
+  document.addEventListener('error', function(e) {
+    if (e.target.tagName.toLowerCase() === 'img') {
+      debug('Image failed to load, using placeholder:', e.target.src);
+      e.target.src = PLACEHOLDER_IMAGE_BASE64;
+    }
+  }, true); // Using capture phase to catch all image errors
 });
 
 // Replace fetchProducts function with improved debugging
@@ -116,6 +127,7 @@ async function fetchProducts() {
 function convertDriveUrlToDirectImageUrl(driveUrl) {
   // If not a Google Drive URL or empty, return as-is
   if (!driveUrl || !driveUrl.includes('drive.google.com')) {
+    debug("Not a Google Drive URL:", driveUrl);
     return driveUrl;
   }
   
@@ -132,11 +144,30 @@ function convertDriveUrlToDirectImageUrl(driveUrl) {
   
   if (!fileId) {
     debug("Could not extract file ID from URL:", driveUrl);
-    return driveUrl; // Could not extract ID, return original
+    return PLACEHOLDER_IMAGE_BASE64; // Return placeholder instead of original URL
   }
+  
+  debug("Extracted file ID:", fileId);
   
   // Return direct access URL
   return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+// Validate and test Google Drive image URL
+function isValidImageUrl(url) {
+  if (!url) return false;
+  
+  // Check if it's already a data URL
+  if (url.startsWith('data:')) return true;
+  
+  // Basic URL validation
+  try {
+    new URL(url);
+    return true;
+  } catch(e) {
+    debug("Invalid URL format:", url);
+    return false;
+  }
 }
 
 // Function to handle image input
@@ -146,15 +177,33 @@ function handleDriveImageInput() {
   
   if (!driveUrlInput || !driveUrlInput.value) {
     debug("No drive URL input or empty value");
+    // Set placeholder image
+    imagePreview.innerHTML = `
+      <img src="${PLACEHOLDER_IMAGE_BASE64}" alt="Product Image">
+      <p>No image URL provided</p>
+    `;
     return;
   }
   
-  const directUrl = convertDriveUrlToDirectImageUrl(driveUrlInput.value);
+  const inputUrl = driveUrlInput.value.trim();
+  debug("Processing URL input:", inputUrl);
+  
+  if (!isValidImageUrl(inputUrl)) {
+    debug("Invalid URL format");
+    imagePreview.innerHTML = `
+      <img src="${PLACEHOLDER_IMAGE_BASE64}" alt="Product Image">
+      <p>Invalid URL format</p>
+    `;
+    return;
+  }
+  
+  const directUrl = convertDriveUrlToDirectImageUrl(inputUrl);
   debug("Converted URL:", directUrl);
   
   // Update preview with the image
   imagePreview.innerHTML = `
-    <img src="${directUrl}" alt="Product Image" onerror="this.src='placeholder.jpg'">
+    <img src="${directUrl}" alt="Product Image" 
+         onerror="this.src='${PLACEHOLDER_IMAGE_BASE64}'">
     <input type="hidden" id="imageUrl" name="imageUrl" value="${directUrl}">
   `;
   
@@ -190,6 +239,9 @@ async function addProduct() {
       imageUrl = driveUrlInput.getAttribute('data-processed-url') || 
                 convertDriveUrlToDirectImageUrl(driveUrlInput.value);
       debug("Image URL processed:", imageUrl);
+    } else {
+      imageUrl = PLACEHOLDER_IMAGE_BASE64;
+      debug("Using placeholder image");
     }
     
     // Build product object
@@ -200,7 +252,7 @@ async function addProduct() {
       code: formData.get('code'),
       category: formData.get('category'),
       popularName: formData.get('popularName') || "",
-      image: imageUrl || 'placeholder.jpg'
+      image: imageUrl || PLACEHOLDER_IMAGE_BASE64
     };
     
     debug("Product object built:", product);
@@ -369,13 +421,13 @@ function displayProducts(products) {
     // Make sure image URLs are in direct format
     const imageUrl = product.image ? 
                     convertDriveUrlToDirectImageUrl(product.image) : 
-                    'placeholder.jpg';
+                    PLACEHOLDER_IMAGE_BASE64;
                     
     const productCard = document.createElement('div');
     productCard.className = 'product-card';
     productCard.innerHTML = `
       <div class="product-image">
-        <img src="${imageUrl}" alt="${product.name}" onerror="this.src='placeholder.jpg'">
+        <img src="${imageUrl}" alt="${product.name}" onerror="this.src='${PLACEHOLDER_IMAGE_BASE64}'">
       </div>
       <div class="product-details">
         <h3>${product.name}</h3>
