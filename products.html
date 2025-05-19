@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,30 +55,38 @@
     <script>
         // Load products when page loads
         document.addEventListener('DOMContentLoaded', async () => {
-            const products = await fetchProducts();
-            displayProducts(products);
-            
-            // Set up search functionality
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', () => {
-                const searchTerm = searchInput.value.toLowerCase();
-                const filteredProducts = products.filter(product => 
-                    product.name.toLowerCase().includes(searchTerm) || 
-                    (product.popularName && product.popularName.toLowerCase().includes(searchTerm)) ||
-                    product.code.toLowerCase().includes(searchTerm)
-                );
-                displayProducts(filteredProducts);
-            });
-            
-            // Set up category filter
-            const categoryFilter = document.getElementById('categoryFilter');
-            categoryFilter.addEventListener('change', () => {
-                const category = categoryFilter.value;
-                const filteredProducts = category ? 
-                    products.filter(product => product.category === category) : 
-                    products;
-                displayProducts(filteredProducts);
-            });
+            try {
+                console.log("DOM loaded, fetching products...");
+                const products = await fetchProducts();
+                console.log("Products fetched:", products);
+                displayProducts(products);
+                
+                // Set up search functionality
+                const searchInput = document.getElementById('searchInput');
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredProducts = products.filter(product => 
+                        product.name.toLowerCase().includes(searchTerm) || 
+                        (product.popularName && product.popularName.toLowerCase().includes(searchTerm)) ||
+                        product.code.toLowerCase().includes(searchTerm)
+                    );
+                    displayProducts(filteredProducts);
+                });
+                
+                // Set up category filter
+                const categoryFilter = document.getElementById('categoryFilter');
+                categoryFilter.addEventListener('change', () => {
+                    const category = categoryFilter.value;
+                    const filteredProducts = category ? 
+                        products.filter(product => product.category === category) : 
+                        products;
+                    displayProducts(filteredProducts);
+                });
+            } catch (error) {
+                console.error("Error in main page script:", error);
+                document.getElementById('productsContainer').innerHTML = 
+                    '<div class="error-message">Failed to load products. Please check your connection and try again.</div>';
+            }
         });
     </script>
 </body>

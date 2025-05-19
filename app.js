@@ -21,6 +21,10 @@ async function fetchProducts() {
     const response = await fetch(SCRIPT_URL);
     debug("Response status:", response.status);
     
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const result = await response.json();
     debug("API result:", result);
     
@@ -40,12 +44,11 @@ async function fetchProducts() {
       return products;
     } else {
       debug("API returned error or no data:", result);
-      alert("Error loading products: " + (result.message || "Unknown error"));
+      console.error("Error loading products: " + (result.message || "Unknown error"));
       return [];
     }
   } catch (error) {
     console.error("Error fetching products:", error);
-    alert("Error connecting to database. Please check your internet connection and try again.");
     return [];
   }
 }
@@ -100,7 +103,7 @@ function handleDriveImageInput() {
   `;
   
   // Store the raw URL in a hidden field for form submission
-  document.getElementById('driveImageUrl').setAttribute('data-processed-url', directUrl);
+  driveUrlInput.setAttribute('data-processed-url', directUrl);
 }
 
 // Replace addProduct function with improved error handling
@@ -110,12 +113,6 @@ async function addProduct() {
     debug("Form not found");
     return;
   }
-  
-  // Show loading state
-  const saveBtn = form.querySelector('.save-btn');
-  const originalBtnText = saveBtn.innerHTML;
-  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-  saveBtn.disabled = true;
   
   try {
     // Collect form data
@@ -143,23 +140,34 @@ async function addProduct() {
     
     debug("Sending product data:", product);
     
-    // Send data to Google Apps Script
-    const response = await fetch(SCRIPT_URL, {
+    // CORS workaround for Google Apps Script
+    const scriptURL = SCRIPT_URL;
+    
+    // Send data to Google Apps Script with additional CORS handling
+    const response = await fetch(scriptURL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
+      redirect: 'follow',
       body: JSON.stringify(product)
     });
     
     debug("Response status:", response.status);
+    debug("Response headers:", [...response.headers.entries()]);
     
     // Parse the response
     const result = await response.json();
     debug("API result:", result);
     
     if (result.status === "success") {
-      alert(`Product "${product.name}" added successfully!`);
+      // Success! Display success message and reset form
+      if (typeof showSuccess === 'function') {
+        showSuccess(`Product "${product.name}" added successfully!`);
+      } else {
+        alert(`Product "${product.name}" added successfully!`);
+      }
+      
       form.reset();
       
       // Reset image preview
@@ -171,15 +179,21 @@ async function addProduct() {
         `;
       }
     } else {
-      alert("Error adding product: " + (result.message || "Unknown error"));
+      // API returned an error
+      if (typeof showError === 'function') {
+        showError("Error adding product: " + (result.message || "Unknown error"));
+      } else {
+        alert("Error adding product: " + (result.message || "Unknown error"));
+      }
     }
   } catch (error) {
     console.error("Error adding product:", error);
-    alert("Error adding product. Please check your connection and try again.");
-  } finally {
-    // Restore button state
-    saveBtn.innerHTML = originalBtnText;
-    saveBtn.disabled = false;
+    
+    if (typeof showError === 'function') {
+      showError("Error connecting to database. Please check your connection and try again.");
+    } else {
+      alert("Error connecting to database. Please check your connection and try again.");
+    }
   }
 }
 
